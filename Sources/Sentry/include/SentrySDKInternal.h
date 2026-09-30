@@ -374,6 +374,13 @@ SENTRY_NO_INIT
 + (void)endSession;
 
 /**
+ * Ends the current @c SentrySession with the given status. Ending with @c SentrySessionStatusOk
+ * behaves like @c endSession: the status becomes @c exited, or @c unhandled when a pending
+ * unhandled error was recorded. All other statuses are set exactly as given.
+ */
++ (void)endSessionWithStatus:(SentrySessionStatus)status NS_SWIFT_NAME(endSession(status:));
+
+/**
  * This forces a crash, useful to test the @c SentryCrash integration.
  *
  * @note The SDK can't report a crash when a debugger is attached. Your application needs to run

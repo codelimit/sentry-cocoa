@@ -211,6 +211,27 @@ static NSString *_Nonnull const kSentryFalseString = @"false";
 typedef NS_ENUM(NSInteger, SentryTransactionNameSource); // This is a forward declaration, the
                                                          // actual enum is implemented in Swift.
 
+/**
+ * The status of a SentrySession.
+ */
+typedef NS_ENUM(NSInteger, SentrySessionStatus) {
+    /**
+     * The session is in progress or ended without errors. When ending a session with this status,
+     * the session ends as SentrySessionStatusExited instead, or as SentrySessionStatusUnhandled
+     * when an unhandled error that didn't terminate the process was recorded.
+     */
+    SentrySessionStatusOk = 0,
+    /// The session ended without errors.
+    SentrySessionStatusExited,
+    /// The session ended because of a crash.
+    SentrySessionStatusCrashed,
+    /// The session ended abnormally, for example because the app was terminated while the device
+    /// was low on memory.
+    SentrySessionStatusAbnormal,
+    /// The session ended because of an unhandled error that didn't terminate the process.
+    SentrySessionStatusUnhandled
+};
+
 #if TARGET_OS_IOS && SENTRY_HAS_UIKIT
 
 /**

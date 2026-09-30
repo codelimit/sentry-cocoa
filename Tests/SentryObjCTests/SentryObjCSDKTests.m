@@ -598,6 +598,23 @@
     [SentryObjCSDK endSession];
 }
 
+- (void)testEndSessionWithStatus_shouldNotCrash
+{
+    // -- Arrange --
+    [SentryObjCSDK startSession];
+
+    // -- Act & Assert (no crash) --
+    [SentryObjCSDK endSessionWithStatus:SentryObjCSessionStatusOk];
+    [SentryObjCSDK startSession];
+    [SentryObjCSDK endSessionWithStatus:SentryObjCSessionStatusExited];
+    [SentryObjCSDK startSession];
+    [SentryObjCSDK endSessionWithStatus:SentryObjCSessionStatusCrashed];
+    [SentryObjCSDK startSession];
+    [SentryObjCSDK endSessionWithStatus:SentryObjCSessionStatusAbnormal];
+    [SentryObjCSDK startSession];
+    [SentryObjCSDK endSessionWithStatus:SentryObjCSessionStatusUnhandled];
+}
+
 #pragma mark - Display / App Hang
 
 - (void)testReportFullyDisplayed_shouldNotCrash

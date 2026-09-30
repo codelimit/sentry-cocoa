@@ -294,6 +294,10 @@ import Foundation
         SentrySDK.endSession()
     }
 
+    @objc(endSessionWithStatus:) public static func endSession(status: SentryObjCSessionStatus) {
+        SentrySDK.endSession(status: status.underlying)
+    }
+
     @objc public static func crash() {
         SentrySDK.crash()
     }

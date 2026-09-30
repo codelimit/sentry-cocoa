@@ -27,6 +27,67 @@ class SentrySessionTestsSwift: XCTestCase {
         XCTAssertEqual(date, session.timestamp)
         XCTAssertEqual(SentrySessionStatus.exited, session.status)
     }
+
+    func testEndSessionWithStatus_whenOk_shouldEndAsExited() {
+        // -- Arrange --
+        let session = SentrySession(releaseName: "0.1.0", distinctId: "some-id")
+        let date = currentDateProvider.date().addingTimeInterval(1)
+
+        // -- Act --
+        session.end(withStatus: .ok, timestamp: date)
+
+        // -- Assert --
+        XCTAssertEqual(SentrySessionStatus.exited, session.status)
+        XCTAssertEqual(date, session.timestamp)
+        XCTAssertEqual(1, session.duration)
+    }
+
+    func testEndSessionWithStatus_whenOkAndPendingUnhandled_shouldEndAsUnhandled() {
+        // -- Arrange --
+        let session = SentrySession(releaseName: "0.1.0", distinctId: "some-id")
+        session.markPendingUnhandled()
+        let date = currentDateProvider.date().addingTimeInterval(1)
+
+        // -- Act --
+        session.end(withStatus: .ok, timestamp: date)
+
+        // -- Assert --
+        XCTAssertEqual(SentrySessionStatus.unhandled, session.status)
+    }
+
+    func testEndSessionWithStatus_whenTerminalStatus_shouldSetStatusExactly() {
+        func testStatus(status: SentrySessionStatus, statusAsString: String) {
+            // -- Arrange --
+            let session = SentrySession(releaseName: "0.1.0", distinctId: "some-id")
+            let date = currentDateProvider.date().addingTimeInterval(1)
+
+            // -- Act --
+            session.end(withStatus: status, timestamp: date)
+
+            // -- Assert --
+            XCTAssertEqual(status, session.status)
+            XCTAssertEqual(statusAsString, session.serialize()["status"] as? String)
+            XCTAssertEqual(date, session.timestamp)
+        }
+
+        testStatus(status: .exited, statusAsString: "exited")
+        testStatus(status: .crashed, statusAsString: "crashed")
+        testStatus(status: .abnormal, statusAsString: "abnormal")
+        testStatus(status: .unhandled, statusAsString: "unhandled")
+    }
+
+    func testEndSessionWithStatus_whenExitedAndPendingUnhandled_shouldEndAsExited() {
+        // -- Arrange --
+        let session = SentrySession(releaseName: "0.1.0", distinctId: "some-id")
+        session.markPendingUnhandled()
+        let date = currentDateProvider.date().addingTimeInterval(1)
+
+        // -- Act --
+        session.end(withStatus: .exited, timestamp: date)
+
+        // -- Assert --
+        XCTAssertEqual(SentrySessionStatus.exited, session.status)
+    }
     
     func testInitAndDurationNilWhenSerialize() {
         // A restored, still-active session (no init flag, no stored duration, but with a

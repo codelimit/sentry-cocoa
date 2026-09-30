@@ -224,6 +224,44 @@ class SentrySDKInternalTests: XCTestCase {
         XCTAssertEqual(SentryDependencyContainer.sharedInstance().dateProvider.date(), actual.timestamp)
     }
 
+    func testEndSessionWithStatus_whenOk_shouldCaptureSessionAsExited() throws {
+        givenSdkWithHub()
+
+        SentrySDK.startSession()
+        advanceTime(bySeconds: 1)
+        SentrySDK.endSession(status: .ok)
+
+        XCTAssertEqual(2, fixture.client.captureSessionInvocations.count)
+
+        let actual = try XCTUnwrap(fixture.client.captureSessionInvocations.invocations.last)
+        XCTAssertEqual(SentrySessionStatus.exited, actual.status)
+        XCTAssertEqual(1, actual.duration)
+        XCTAssertEqual(SentryDependencyContainer.sharedInstance().dateProvider.date(), actual.timestamp)
+    }
+
+    func testEndSessionWithStatus_whenTerminalStatus_shouldCaptureSessionWithExactStatus() throws {
+        givenSdkWithHub()
+
+        for status in [SentrySessionStatus.exited, .crashed, .abnormal, .unhandled] {
+            SentrySDK.startSession()
+            advanceTime(bySeconds: 1)
+            SentrySDK.endSession(status: status)
+
+            let actual = try XCTUnwrap(
+                fixture.client.captureSessionInvocations.invocations.last,
+                "Expected a captured session for status \(status)")
+            XCTAssertEqual(status, actual.status)
+        }
+    }
+
+    func testEndSessionWithStatus_whenNoSession_shouldNotCaptureSession() {
+        givenSdkWithHub()
+
+        SentrySDK.endSession(status: .crashed)
+
+        XCTAssertEqual(0, fixture.client.captureSessionInvocations.count)
+    }
+
     func testSetUser_SetsUserToScopeOfHub() {
         givenSdkWithHub()
 

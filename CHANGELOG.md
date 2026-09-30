@@ -14,6 +14,7 @@
   - `enableFileManagerSwizzling` is now stable, remains disabled by default, and supports dictionary-based initialization.
 - Add `connection_type` to the device context of events, which reports `wifi`, `ethernet`, `cellular`, or `none` (#9097).
   On iOS, cellular connections additionally report the network technology in `connection_effective_type`, for example `4g` or `5g`.
+- Add `SentrySDK.endSession(status:)` and `+[SentryObjCSDK endSessionWithStatus:]` to manually end the current session with a specific status, similar to sentry-native's `sentry_end_session_with_status` (#9188)
 
 ### Fixes
 

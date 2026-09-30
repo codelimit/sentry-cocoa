@@ -663,6 +663,21 @@ extension SentrySDK {
         SentrySDKInternal.endSession()
     }
 
+    /// Ends the current `SentrySession` with the given status. You can use this method in combination
+    /// with `startSession` to manually track `SentrySessions`. The SDK uses `SentrySession` to inform
+    /// Sentry about release and project associated project health.
+    ///
+    /// Ending with `SentrySessionStatus.ok` behaves like `endSession()`: the status becomes `exited`,
+    /// or `unhandled` when an unhandled error that didn't terminate the process was recorded. All
+    /// other statuses are set exactly as given.
+    /// - Parameter status: The status to end the session with.
+    #if !SDK_V10
+    @objc
+    #endif
+    public static func endSession(status: SentrySessionStatus) {
+        SentrySDKInternal.endSession(status: status)
+    }
+
     /// This forces a crash, useful to test the `SentryCrash` integration.
     ///
     /// - note: The SDK can't report a crash when a debugger is attached. Your application needs to run

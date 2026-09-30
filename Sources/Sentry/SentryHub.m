@@ -157,13 +157,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)endSessionWithTimestamp:(NSDate *)timestamp
 {
-    SentrySession *currentSession = nil;
-    @synchronized(_sessionLock) {
-        currentSession = _session;
-        _session = nil;
-        _errorsBeforeSession = 0;
-        [self deleteCurrentSession];
-    }
+    SentrySession *currentSession = [self removeCurrentSession];
 
     if (currentSession == nil) {
         SENTRY_LOG_DEBUG(@"No session to end with timestamp.");
@@ -173,6 +167,32 @@ NS_ASSUME_NONNULL_BEGIN
     [self captureSession:currentSession];
 
     [self notifySessionEnded:currentSession];
+}
+
+- (void)endSessionWithStatus:(SentrySessionStatus)status timestamp:(NSDate *)timestamp
+{
+    SentrySession *currentSession = [self removeCurrentSession];
+
+    if (currentSession == nil) {
+        SENTRY_LOG_DEBUG(@"No session to end with status.");
+        return;
+    }
+    [currentSession endSessionWithStatus:status timestamp:timestamp];
+    [self captureSession:currentSession];
+
+    [self notifySessionEnded:currentSession];
+}
+
+- (nullable SentrySession *)removeCurrentSession
+{
+    SentrySession *currentSession = nil;
+    @synchronized(_sessionLock) {
+        currentSession = _session;
+        _session = nil;
+        _errorsBeforeSession = 0;
+        [self deleteCurrentSession];
+    }
+    return currentSession;
 }
 
 - (void)notifySessionStarted:(SentrySession *)session

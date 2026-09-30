@@ -49,6 +49,46 @@ final class SentryObjCCompatEnumConversionTests: XCTestCase {
         }
     }
 
+    // MARK: - SentryObjCSessionStatus
+
+    func testSessionStatusInit_whenEachCase_shouldMapCorrectly() {
+        // -- Arrange --
+        let cases: [(SentrySessionStatus, SentryObjCSessionStatus)] = [
+            (.ok, .ok),
+            (.exited, .exited),
+            (.crashed, .crashed),
+            (.abnormal, .abnormal),
+            (.unhandled, .unhandled)
+        ]
+
+        for (underlying, expected) in cases {
+            // -- Act --
+            let result = SentryObjCSessionStatus(underlying)
+
+            // -- Assert --
+            XCTAssertEqual(result, expected, "Expected \(expected) for underlying \(underlying)")
+        }
+    }
+
+    func testSessionStatusUnderlying_whenEachCase_shouldRoundTrip() {
+        // -- Arrange --
+        let cases: [(SentryObjCSessionStatus, SentrySessionStatus)] = [
+            (.ok, .ok),
+            (.exited, .exited),
+            (.crashed, .crashed),
+            (.abnormal, .abnormal),
+            (.unhandled, .unhandled)
+        ]
+
+        for (objcCase, expected) in cases {
+            // -- Act --
+            let result = objcCase.underlying
+
+            // -- Assert --
+            XCTAssertEqual(result, expected, "Expected \(expected) for ObjC case \(objcCase)")
+        }
+    }
+
     // MARK: - SentryObjCSpanStatus
 
     func testSpanStatusInit_whenEachCase_shouldMapCorrectly() {

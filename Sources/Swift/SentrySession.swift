@@ -2,14 +2,6 @@
 internal import _SentryPrivate
 import Foundation
 
-enum SentrySessionStatus: String {
-    case ok
-    case exited
-    case crashed
-    case abnormal
-    case unhandled
-}
-
 // swiftlint:disable type_body_length
 /// The SDK uses SentrySession to inform Sentry about release and project associated project health.
 @objc @_spi(Private) public class SentrySession: NSObject, NSCopying {
@@ -107,7 +99,7 @@ enum SentrySessionStatus: String {
 
         // Status
         guard let statusString = jsonObject["status"] as? String,
-              let status = SentrySessionStatus(rawValue: statusString) else {
+              let status = SentrySessionStatus(name: statusString) else {
             return nil
         }
         _status = status
@@ -198,6 +190,24 @@ enum SentrySessionStatus: String {
         }
     }
 
+    /// Ends the session with the given status. Ending with `ok` behaves like
+    /// ``endNormally(withTimestamp:)``; all other statuses are set exactly as given.
+    @objc(endSessionWithStatus:timestamp:)
+    public func end(withStatus status: SentrySessionStatus, timestamp: Date) {
+        lock.synchronized {
+            switch status {
+            case .ok:
+                endNormally(withTimestamp: timestamp)
+            case .exited, .crashed, .abnormal, .unhandled:
+                changed()
+                _status = status
+                endSession(withTimestamp: timestamp)
+            @unknown default:
+                SentrySDKLog.error("Cannot end session with unknown status \(status.rawValue).")
+            }
+        }
+    }
+
     @objc public func incrementErrors() {
         lock.synchronized {
             changed()
@@ -234,7 +244,7 @@ enum SentrySessionStatus: String {
                 serializedData["init"] = NSNumber(value: flagInit.boolValue)
             }
 
-            serializedData["status"] = _status.rawValue
+            serializedData["status"] = _status.name
 
             let timestamp = _timestamp ?? SentryDependencyContainer.sharedInstance().dateProvider.date()
             serializedData["timestamp"] = sentry_toIso8601String(timestamp)
